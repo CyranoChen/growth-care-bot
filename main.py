@@ -1,190 +1,117 @@
-import time
+import sounddevice as sd
+import numpy as np
+import scipy.io.wavfile as wav
+import simpleaudio as sa
 
+import sounddevice as sd
 import openai
-from unihiker import GUI, Audio
 
-openai.api_key = "xxxxxxxxxxx"  # input OpenAI api key
+from src.application.azure_setup import init_openai_service
 
 
-# openai speech to text
-def asr():
-    audio_file = open("input.mp3", "rb")
+def list_audio_devices():
+    print("可用音频设备列表：")
+    devices = sd.query_devices()
+    for i, device in enumerate(devices):
+        print(
+            f"{i}: {device['name']} (输入通道: {device['max_input_channels']}, 输出通道: {device['max_output_channels']})"
+        )
 
-    transcript = openai.audio.transcriptions.create(
-        model="whisper-1", file=audio_file, response_format="text"
+
+def record_audio(duration, filename, samplerate=44100, channels=1, device=2):
+    """
+    录制音频并保存为 WAV 文件
+    :param duration: 录音时长（秒）
+    :param filename: 保存的文件名
+    :param samplerate: 采样率（默认44100Hz）
+    """
+    print("开始录音...")
+    audio_data = sd.rec(
+        int(duration * samplerate),
+        samplerate=samplerate,
+        channels=channels,
+        dtype="int16",
+        device=device,
     )
+    sd.wait()  # 等待录音结束
+
+    print("录音结束，保存为文件:", filename)
+    wav.write(filename, samplerate, audio_data)
+
+    return filename
+
+
+def play_audio(filename):
+    """
+    播放指定的 WAV 文件
+    :param filename: 要播放的文件名
+    """
+    print("正在播放音频:", filename)
+    wave_obj = sa.WaveObject.from_wave_file(filename)
+    play_obj = wave_obj.play()
+    play_obj.wait_done()  # 等待播放完成
+    print("播放结束")
+
+
+# azure openai speech to text
+def speech_to_text(client: openai.AzureOpenAI, filename: str):
+    with open(filename, "rb") as audio_file:
+        transcript = client.audio.transcriptions.create(
+            model="whisper", file=audio_file, language="zh", response_format="text"
+        )
 
     return transcript
 
 
-# openai text to speech
-def tts(text):
-    response = openai.audio.speech.create(
-        model="tts-1",
-        # Experiment with different voices (alloy, echo, fable, onyx, nova, and shimmer)
-        voice="alloy",
-        input=text,
+def speech_synthesis(client: openai.AzureOpenAI, filename: str, text: str):
+    with client.audio.speech.with_streaming_response.create(
+        model="tts", voice="alloy", input=text, response_format="wav"
+    ) as response:
+        response.stream_to_file(filename)
+
+    print("语音合成，保存为文件:", filename)
+    return filename
+
+
+def chat_completion(client: openai.AzureOpenAI, content):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o", messages=[{"role": "user", "content": content}]
+        )
+
+        # 提取response中的content并返回
+        return response.choices[0].message.content
+
+    except Exception as exc:
+        print("Error in chat_completion:", exc)
+        return "Error in gpt.chat_completion"
+
+
+if __name__ == "__main__":
+    azure_openai_helper = init_openai_service()
+    INPUT_FILENAME = "input.wav"
+    OUTPUT_FILENAME = "output.wav"
+    DURATION = 5  # 录音时长（秒）
+
+    # 可用音频设备列表
+    list_audio_devices()
+    # 2: MacBook Pro Microphone (输入通道: 1, 输出通道: 0)
+    # 3: MacBook Pro Speakers (输入通道: 0, 输出通道: 2)
+
+    # 录音并保存
+    # input_filename = record_audio(DURATION, INPUT_FILENAME, channels=1, device=3)
+
+    # script = speech_to_text(azure_openai_helper, input_filename)
+    # print("transcript:", script)
+
+    # response_text = chat_completion(azure_openai_helper, script)
+    # print("chat completion:", response_text)
+
+    response_text = "Hello! I'm an AI language model created by OpenAI. I'm here to assist you with information and answer questions to the best of my ability. How can I help you today?"
+    output_filename = speech_synthesis(
+        azure_openai_helper, OUTPUT_FILENAME, response_text
     )
+    print("speech synthesis:", output_filename)
 
-    response.stream_to_file("output.mp3")
-
-
-# openai
-def askOpenAI(question):
-    completion = openai.chat.completions.create(
-        model="gpt-3.5-turbo", messages=question
-    )
-    # print(completion.choices[0].message.content)
-    return completion.choices[0].message.content
-
-
-# text display
-def text_update():
-    global y1
-    time.sleep(16)
-    while True:
-        y1 -= 2
-        time.sleep(0.15)
-        trans.config(y=y1)
-
-
-#
-def play_audio():
-    global flag
-    u_audio.play("output.mp3")
-    u_gui.stop_thread(thread1)
-    flag = 0
-
-
-def monitor_silence():
-    global is_recording, monitor_thread
-    silence_time = 0
-
-    while is_recording:
-        sound_level = u_audio.sound_level()
-        if sound_level < THRESHOLD:
-            silence_time += 0.1
-        else:
-            silence_time = 0
-
-        if silence_time >= SILENCE_DURATION:
-            u_audio.stop_record()
-            is_recording = 0
-            u_gui.stop_thread(monitor_thread)
-
-        time.sleep(0.1)  # detect once /0.1s
-
-
-def start_recording_with_silence_detection(filename):
-    global is_recording, monitor_thread
-    is_recording = 1
-    u_audio.start_record(filename)  # start record
-    monitor_thread = u_gui.start_thread(monitor_silence)
-
-
-# event callback function
-def button_click1():
-    global flag
-    flag = 1
-
-
-def button_click2():
-    global flag
-    flag = 3
-
-
-def button_click3():
-    global flag, thread1, thread2
-    flag = 0
-    u_gui.stop_thread(thread1)
-    u_gui.stop_thread(thread2)
-
-
-u_gui = GUI()
-u_audio = Audio()
-
-
-# GUI
-img1 = u_gui.draw_image(image="background.jpg", x=0, y=0, w=240)
-button = u_gui.draw_image(image="mic.jpg", x=13, y=240, h=60, onclick=button_click1)
-refresh = u_gui.draw_image(
-    image="refresh.jpg", x=157, y=240, h=60, onclick=button_click2
-)
-init = u_gui.draw_text(text="Tap to speak", x=27, y=50, font_size=15, color="#00CCCC")
-trans = u_gui.draw_text(text="", x=5, y=0, color="#000000", w=230)
-back = u_gui.draw_image(image="backk.jpg", x=0, y=268, onclick=button_click3)
-DigitalTime = u_gui.draw_digit(
-    text=time.strftime("%Y/%m/%d       %H:%M"), x=9, y=5, font_size=12, color="black"
-)
-
-
-result = ""
-flag = 0
-text_display = ""
-y1 = 0
-
-message = [{"role": "system", "content": "You are a helpful assistant."}]
-user = {"role": "user", "content": ""}
-assistant = {"role": "assistant", "content": ""}
-
-# Threshold setting, the specific value needs to be adjusted according to the actual situation
-THRESHOLD = 20  # Assuming this is the detected silence threshold
-SILENCE_DURATION = 2  # 2 seconds silent time
-
-# Recording control variables
-is_recording = 0
-
-
-while True:
-    if flag == 0:
-        button.config(image="mic.jpg", state="normal")
-        refresh.config(image="refresh.jpg", state="normal")
-        back.config(image="", state="disable")
-        DigitalTime.config(text=time.strftime("%Y/%m/%d       %H:%M"))
-
-    if flag == 3:
-        message.clear()
-        message = [{"role": "system", "content": "You are a helpful assistant."}]
-
-    if flag == 2:
-        DigitalTime.config(text=time.strftime(""))
-        azure_synthesis_result = askOpenAI(message)
-        assistant["content"] = azure_synthesis_result
-        message.append(assistant.copy())
-        tts(azure_synthesis_result)
-        trans.config(text=azure_synthesis_result)
-        back.config(image="backk.jpg", state="normal")
-
-        thread1 = u_gui.start_thread(text_update)
-        thread2 = u_gui.start_thread(play_audio)
-
-        while not (flag == 0):
-            pass
-
-        y1 = 0
-        trans.config(text="      ", y=y1)
-        button.config(image="", state="normal")
-        refresh.config(image="", state="normal")
-        init.config(x=15)
-
-    if flag == 1:
-        DigitalTime.config(text=time.strftime(""))
-        is_recording = 1
-        init.config(x=600)
-        trans.config(text="Listening。。。")
-        start_recording_with_silence_detection("input.mp3")
-        button.config(image="", state="disable")
-        refresh.config(image="", state="disable")
-        back.config(image="", state="disable")
-
-        while not ((is_recording == 0)):
-            pass
-
-        back.config(image="", state="disable")
-        result = asr()
-        user["content"] = result
-        message.append(user.copy())
-        trans.config(text=result)
-        time.sleep(2)
-        trans.config(text="Thinking。。。")
-        flag = 2
+    # 播放录制的音频
+    play_audio(output_filename)

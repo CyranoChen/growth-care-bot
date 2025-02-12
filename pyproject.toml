@@ -2,16 +2,20 @@
 dependencies = [
   "openai>=1.61.1",
   "pinpong>=0.6.1",
+  "siot>=0.1.7",
   "unihiker>=0.0.27",
 ]
 description = "Add your description here"
 name = "growthcarebot"
 readme = "README.md"
 requires-python = "==3.12.*"
-version = "0.1.0"
+version = "0.2.0"
 
 [dependency-groups]
 dev = [
   "black>=25.1.0",
   "isort>=6.0.0",
+  "scipy>=1.15.1",
+  "simpleaudio>=1.0.4",
+  "sounddevice>=0.5.1",
 ]
