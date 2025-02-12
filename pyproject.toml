@@ -4,6 +4,9 @@ dependencies = [
   "pinpong>=0.6.1",
   "siot>=0.1.7",
   "unihiker>=0.0.27",
+  "sounddevice>=0.5.1",
+  "pygame>=2.6.1",
+  "numpy>=2.2.2",
 ]
 description = "Add your description here"
 name = "growthcarebot"
@@ -15,7 +18,4 @@ version = "0.2.0"
 dev = [
   "black>=25.1.0",
   "isort>=6.0.0",
-  "scipy>=1.15.1",
-  "simpleaudio>=1.0.4",
-  "sounddevice>=0.5.1",
 ]
