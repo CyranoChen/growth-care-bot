@@ -14,7 +14,8 @@ def init_openai_service() -> AzureOpenAI:
     token = str(os.getenv("AZURE_OPENAI_TOKENS").split(",")[1])
 
     return AzureOpenAI(
-        azure_endpoint=f"https://{endpoint}.openai.azure.com/",
+        # pylint: disable=consider-using-f-string
+        azure_endpoint="https://{}.openai.azure.com/".format(endpoint),
         api_key=token,
         api_version=DEFAULT_API_VERSION,
     )

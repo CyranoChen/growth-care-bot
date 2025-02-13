@@ -25,11 +25,12 @@ class ConversationService:
             if (
                 not response.choices
                 or not response.choices[0].message
-                or not (result := response.choices[0].message.content)
+                or not (response.choices[0].message.content)
             ):
                 # pylint: disable=broad-exception-raised
                 raise Exception("调用llm，无法获取结果")
 
+            result = response.choices[0].message.content
             self.context.append({"role": "assistant", "content": result})
             return result
 

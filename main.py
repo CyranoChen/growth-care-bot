@@ -92,7 +92,7 @@ class GrowthCareBot:
             print("Audio Played")
         # pylint: disable=broad-exception-caught
         except Exception as exc:
-            print(f"Error processing audio: {exc}")
+            print("Error processing audio:", exc)
         finally:
             self.master.after(0, self.reset_interface)
 

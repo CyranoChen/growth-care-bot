@@ -45,7 +45,7 @@ class AudioService:
                     sd.sleep(100)  # Wait in the loop while streaming audio
         # pylint: disable=broad-exception-caught
         except Exception as exc:
-            print(f"Error in recording: {exc}")
+            print("Error in recording:", exc)
 
         return self
 
