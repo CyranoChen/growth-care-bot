@@ -1,0 +1,57 @@
+# fail_fast: true
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-json
+      # - id: pretty-format-json
+      # - id: check-yaml
+      # - id: end-of-file-fixer
+      # args: [--autofix]
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3.12
+
+  - repo: local
+    hooks:
+      - id: requirements
+        name: export requirements
+        entry: export_requirements.sh
+        language: script
+        pass_filenames: false
+        verbose: true
+        stages: [pre-commit]
+      # - id: swagger # covert v3 to v2 by api-spec-converter
+      #   name: export swagger
+      #   entry: export_swagger.sh
+      #   language: script
+      #   pass_filenames: false
+      #   verbose: true
+      #   stages: [pre-commit]
+      - id: pylint
+        name: pylint
+        entry: uv run coverage run --source=src -m pytest -v --pylint --pylint-rcfile pylintrc -m pylint .
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      # - id: pytest
+      #   name: pytest
+      #   entry: uv run coverage run --source=src -m pytest -v tests/unit/ tests/auto/unit_gpt/
+      #   language: system
+      #   pass_filenames: false
+      #   stages: [pre-commit]
+      # - id: behave
+      #   name: behave
+      #   entry: env PYTHONPATH=./src/ SLOW_TEST_LOCAL=1 pipenv run behave --format=pretty --logging-clear-handlers -v tests/integration/
+      #   language: system
+      #   pass_filenames: false
+      #   stages: [pre-commit]

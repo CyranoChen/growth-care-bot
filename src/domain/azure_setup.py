@@ -1,6 +1,6 @@
 import os
 
-from openai import AsyncAzureOpenAI, AzureOpenAI
+from openai import AzureOpenAI
 
 DEFAULT_API_VERSION = "2024-12-01-preview"
 

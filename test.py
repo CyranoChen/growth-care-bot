@@ -6,7 +6,7 @@ from unihiker import GUI, Audio
 
 data = {
     "title": "GrowthCareBot GUI",
-    "subtitle": "Python version: " + sys.version.split(" ")[0],
+    "subtitle": "Python version: " + sys.version.split(" ", maxsplit=1)[0],
     "content": "This is a Python GUI example.",
 }
 
@@ -18,6 +18,7 @@ def play_audio(audio: Audio, audio_file: str):
     # flag = 0
 
 
+# pylint: disable=redefined-outer-name
 def display(gui: GUI, data: dict):
     gui.draw_text(
         text=data.get("title", "<TITLE>"),
