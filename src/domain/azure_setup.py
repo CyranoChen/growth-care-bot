@@ -2,7 +2,7 @@ import os
 
 from openai import AzureOpenAI
 
-DEFAULT_API_VERSION = "2024-12-01-preview"
+DEFAULT_API_VERSION = "2025-02-01-preview"
 
 
 def init_openai_service() -> AzureOpenAI:

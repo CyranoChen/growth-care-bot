@@ -1,4 +1,5 @@
 import threading
+from time import time
 import tkinter as tk
 
 from src.service.audio_service import AudioService
@@ -9,17 +10,36 @@ class GrowthCareBot:
     def __init__(self, master: tk.Tk):
         self.master = master
         self.master.title("Growth Care Bot")
+        self.master.geometry("240x360")
+
+        # 绑定空格键
         self.master.bind("<space>", self.spacebar_pressed)
 
         self.conversation = ConversationService()
         self.audio = AudioService()
         self.thread = None
 
-        self.label = tk.Label(master, text="Waiting")
-        self.label.pack(pady=20)
+        # 绑定标签并支持换行
+        self.main_frame = tk.Frame(master)
+        self.main_frame.pack(fill="both", expand=True)
+        self.label = tk.Label(
+            self.main_frame,
+            text="Waiting",
+            wraplength=220,
+            justify="left",
+            anchor="w",
+        )
+        self.label.pack(pady=(20, 10), padx=20, fill="x")
 
+        # 控制按钮
+        self.button_frame = tk.Frame(master)
+        self.button_frame.pack(side="bottom", fill="x")  # 按钮框架固定在底部
         self.button = tk.Button(
-            master, text="Start Listening", command=self.toggle_recording
+            self.button_frame,
+            text="Start Listening",
+            command=self.toggle_recording,
+            width=18,
+            height=1,
         )
         self.button.pack(pady=10)
 
@@ -75,20 +95,28 @@ class GrowthCareBot:
         # pylint: disable=too-many-try-statements
         try:
             # 通过after方法在主线程更新标签
-            self.master.after(0, lambda: self.label.config(text="Transcribing ..."))
-            transcript = self.audio.speech_to_text()
-            print("transcript:", transcript.strip())
+
+            # self.master.after(0, lambda: self.label.config(text="Transcribing ..."))
+            # transcript = self.audio.speech_to_text()
+            # print("transcript:", transcript.strip())
+
+            # self.master.after(0, lambda: self.label.config(text="Encoding Audio ..."))
 
             self.master.after(0, lambda: self.label.config(text="Chat Completion ..."))
-            content = self.conversation.chat(transcript.strip())
-            print("chat completion:", content)
+            start = time()
+            encoded_input = self.audio.encode_audio()
+            result = self.conversation.chat(encoded_input)
+            # pylint: disable=consider-using-f-string
+            print(
+                "Chat completion({}s):".format(int(time() - start)), result.transcript
+            )
 
-            self.master.after(0, lambda: self.label.config(text="Synthesizing ..."))
-            self.audio.speech_synthesis(content)
-            print("Speech Synthesizied")
+            # self.master.after(0, lambda: self.label.config(text="Synthesizing ..."))
+            # self.audio.speech_synthesis(content)
+            # print("Speech Synthesizied")
 
-            self.master.after(0, lambda: self.label.config(text="Playing..."))
-            self.audio.play()
+            self.master.after(0, lambda: self.label.config(text=result.transcript))
+            self.audio.play(result.data)
             print("Audio Played")
         # pylint: disable=broad-exception-caught
         except Exception as exc:

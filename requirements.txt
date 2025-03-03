@@ -13,7 +13,7 @@ idna==3.10
 jiter==0.8.2
 modbus-tk==1.1.2
 numpy==2.2.3
-openai==1.65.1
+openai==1.65.2
 paho-mqtt==1.6.1
 pillow==11.1.0
 pinpong==0.6.1

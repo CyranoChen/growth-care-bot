@@ -1,6 +1,8 @@
 # pylint: disable=no-member
+import base64
 import os
 import threading
+from typing import Optional
 import wave
 from pathlib import Path
 
@@ -79,6 +81,12 @@ class AudioService:
 
         return self
 
+    def encode_audio(self) -> str:
+        with open(self.input_audio_file, "rb") as audio_file:
+            data = audio_file.read()
+
+        return base64.b64encode(data).decode("utf-8")
+
     def speech_to_text(self) -> str:
         with open(self.input_audio_file, "rb") as audio_file:
             transcript = self.client.audio.transcriptions.create(
@@ -95,10 +103,14 @@ class AudioService:
 
         return self
 
-    def play(self) -> "AudioService":
+    def play(self, encoded_str: Optional[str] = None) -> "AudioService":
+        if encoded_str:
+            with open(self.output_audio_file, "wb") as audio_file:
+                audio_file.write(base64.b64decode(encoded_str))
+
         pygame.mixer.init()
         pygame.mixer.music.load(self.output_audio_file)
         pygame.mixer.music.play()
 
         while pygame.mixer.music.get_busy():
-            pass  # 等音频播放完，可以通过时间循环或其他方式优化
+            pygame.time.wait(100)
