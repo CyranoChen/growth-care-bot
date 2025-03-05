@@ -1,7 +1,7 @@
 import logging
+from typing import Optional
 
 from openai import AzureOpenAI
-from openai.types.chat import ChatCompletionAudio
 
 from src.domain.azure_setup import init_openai_service
 
@@ -11,33 +11,51 @@ class ConversationService:
         self.client: AzureOpenAI = init_openai_service()
         self.model: str = "gpt-4o-audio-preview"
         self.modalities: list[str] = ["audio", "text"]
-        self.audio: dict = {"voice": "nova", "format": "wav"}
+        self.audio: dict = {"voice": "nova", "format": "pcm16"}
+        self.params: dict = {
+            "temperature": 0.1,
+            "stream": True,
+        }
         self.context: list[dict] = self._get_context()
+        self.transcript_: str = ""
 
     def _get_context(self) -> str:
-        system_prompt = "你是一个语音助手，名字叫妞宝。你要尝试用最通俗易懂的方式回答用户的问题。不要超过50字。"
+        system_prompt = "你是一个语音助手，名字叫妞宝。你要尝试用最通俗易懂的方式回答用户的问题，不要超过50字。"
         return [{"role": "system", "content": system_prompt}]
 
-    def chat(self, encoded_str: str) -> ChatCompletionAudio:
-        """response example:
-        {
-            "index": 0,
-            "message": {
-                "role": "assistant",
-                "content": null,
-                "refusal": null,
-                "audio": {
-                    "id": "audio_abc123",
-                    "expires_at": 1729018505,
-                    "data": "<bytes omitted>",
-                    "transcript": "Yes, golden retrievers are known to be ..."
-                }
-            },
-            "finish_reason": "stop"
-        }
-        """
+    def _handle_stream_response(self, chunk: dict) -> Optional[str]:
+        # print("chunk:", chunk)
+        delta = (
+            dict(choices[0]).get("delta", {})
+            if (choices := chunk.get("choices", None))
+            else None
+        )
+
+        if chunk.get("object", None) == "chat.completion.chunk" and delta:
+            if not (audio := delta.get("audio", None)):
+                return None
+
+            if transcript := audio.get("transcript", None):
+                self.transcript_ += transcript
+
+            if audio_id := audio.get("id", None):
+                self.context.append(
+                    {
+                        "role": "assistant",
+                        "audio": {"id": audio_id},
+                    }
+                )
+
+            if encoded_audio := audio.get("data", None):
+                return encoded_audio
+
+        return None
+
+    def chat(self, encoded_str: str):
         # pylint: disable=too-many-try-statements
         try:
+            # set last transcript to empty
+            self.transcript_ = ""
             self.context.append(
                 {
                     "role": "user",
@@ -49,30 +67,17 @@ class ConversationService:
                     ],
                 }
             )
+
             response = self.client.chat.completions.create(
                 model=self.model,
                 modalities=self.modalities,
                 audio=self.audio,
                 messages=self.context,
+                **self.params,
             )
 
-            if (
-                not response.choices
-                or not response.choices[0].message
-                or not (response.choices[0].message.audio)
-            ):
-                logging.error("response: %s", response.model_dump_json())
-                # pylint: disable=broad-exception-raised
-                raise Exception("模型调用失败，无法获取结果")
-
-            result = response.choices[0].message.audio
-            self.context.append(
-                {
-                    "role": "assistant",
-                    "audio": {"id": result.id},
-                }
-            )
-            return result
+            for chunk in response:
+                yield self._handle_stream_response(chunk.model_dump())
 
         # pylint: disable=broad-exception-caught
         except Exception as exc:

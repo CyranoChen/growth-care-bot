@@ -7,6 +7,7 @@ import wave
 from pathlib import Path
 
 import numpy as np
+from pyaudio import PyAudio, paInt16
 import pygame
 import sounddevice as sd
 from openai import AzureOpenAI
@@ -108,9 +109,21 @@ class AudioService:
             with open(self.output_audio_file, "wb") as audio_file:
                 audio_file.write(base64.b64decode(encoded_str))
 
-        pygame.mixer.init()
+        pygame.mixer.init(frequency=16000, channels=1)
         pygame.mixer.music.load(self.output_audio_file)
         pygame.mixer.music.play()
 
         while pygame.mixer.music.get_busy():
             pygame.time.wait(100)
+
+    def play_chunk(self, encoded_str: str) -> "AudioService":
+        decoded_audio = base64.b64decode(encoded_str)
+
+        stream = PyAudio().open(
+            format=paInt16,  # Assuming 16-bit PCM
+            channels=1,  # Assuming mono audio
+            rate=24000,  # Assuming a sample rate of 24000 Hz
+            output=True,
+        )
+
+        stream.write(decoded_audio)

@@ -1,5 +1,4 @@
 import threading
-from time import time
 import tkinter as tk
 
 from src.service.audio_service import AudioService
@@ -25,7 +24,7 @@ class GrowthCareBot:
         self.label = tk.Label(
             self.main_frame,
             text="Waiting",
-            wraplength=220,
+            wraplength=200,
             justify="left",
             anchor="w",
         )
@@ -103,20 +102,25 @@ class GrowthCareBot:
             # self.master.after(0, lambda: self.label.config(text="Encoding Audio ..."))
 
             self.master.after(0, lambda: self.label.config(text="Chat Completion ..."))
-            start = time()
             encoded_input = self.audio.encode_audio()
-            result = self.conversation.chat(encoded_input)
-            # pylint: disable=consider-using-f-string
-            print(
-                "Chat completion({}s):".format(int(time() - start)), result.transcript
-            )
+            response = self.conversation.chat(encoded_input)
 
-            # self.master.after(0, lambda: self.label.config(text="Synthesizing ..."))
-            # self.audio.speech_synthesis(content)
-            # print("Speech Synthesizied")
+            # Generator
+            for chunk_pcm in response:
+                if chunk_pcm:
+                    # print(len(chunk_pcm), self.conversation.transcript_)
+                    self.master.after(
+                        0, lambda: self.label.config(text=self.conversation.transcript_)
+                    )
+                    self.audio.play_chunk(chunk_pcm)
 
-            self.master.after(0, lambda: self.label.config(text=result.transcript))
-            self.audio.play(result.data)
+            # # self.master.after(0, lambda: self.label.config(text="Synthesizing ..."))
+            # # self.audio.speech_synthesis(content)
+            # # print("Speech Synthesizied")
+
+            # self.master.after(0, lambda: self.label.config(text=result.transcript))
+            # self.audio.play(result.data)
+            print("Transcript:", self.conversation.transcript_)
             print("Audio Played")
         # pylint: disable=broad-exception-caught
         except Exception as exc:
