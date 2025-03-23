@@ -2,15 +2,15 @@
 import base64
 import os
 import threading
-from typing import Optional
 import wave
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
-from pyaudio import PyAudio, paInt16
 import pygame
 import sounddevice as sd
 from openai import AzureOpenAI
+from pyaudio import PyAudio, paInt16
 
 from src.domain.azure_setup import init_openai_service
 
