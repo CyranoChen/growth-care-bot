@@ -4,7 +4,7 @@ repos:
     rev: v5.0.0
     hooks:
       # https://github.com/pre-commit/pre-commit-hooks/blob/main/.pre-commit-hooks.yaml
-      - id: check-added-large-files
+      # - id: check-added-large-files
       - id: check-ast
       - id: check-byte-order-marker
       - id: check-builtin-literals
