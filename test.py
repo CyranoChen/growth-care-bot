@@ -138,10 +138,35 @@ class MuseumGuide:
         else:
             self.greet(gender="male")
 
-    def main(self):
+    def handle_terminal_input(self):
         while True:
-            self.render()
-            time.sleep(600)  # Keep the program running
+            try:
+                # pylint: disable=bad-builtin
+                user_input = input("Enter stage (0-4): ")
+                if user_input.isdigit():
+                    stage = int(user_input)
+                    if 0 <= stage <= 4:
+                        with self.lock:
+                            self.stage = stage
+                            self.render()
+                    else:
+                        print("Invalid stage. Please enter a number between 0 and 4.")
+                else:
+                    print("Invalid input. Please enter a number.")
+            # pylint: disable=broad-exception-caught
+            except Exception as exc:
+                print("Error handling input:", exc)
+
+    def main(self):
+        # Start a thread to handle terminal input
+        threading.Thread(target=self.handle_terminal_input, daemon=True).start()
+
+        # Render the initial stage
+        self.render()
+
+        # Keep the program running
+        while True:
+            time.sleep(600)
 
 
 if __name__ == "__main__":
