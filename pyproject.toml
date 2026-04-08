@@ -1,19 +1,18 @@
 [project]
 dependencies = [
   "numpy~=2.2",
-  "openai~=1.65",
+  "openai~=1.109",
   "pinpong~=0.6",
-  "pyaudio~=0.2",
   "pygame~=2.6",
   "siot~=0.1",
   "sounddevice~=0.5",
-  "unihiker~=0.0.27",
+  "unihiker~=0.0.28",
 ]
-description = "Growth Care Bot"
-name = "growth-care-bot"
+description = "BoBao Bot"
+name = "Bobot"
 readme = "README.md"
-requires-python = "==3.12.*"
-version = "0.4.0"
+requires-python = "==3.13.*"
+version = "0.5.0"
 
 [dependency-groups]
 dev = [

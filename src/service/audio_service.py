@@ -10,7 +10,7 @@ import numpy as np
 import pygame
 import sounddevice as sd
 from openai import AzureOpenAI
-from pyaudio import PyAudio, paInt16
+from pyaudio import PyAudio, paInt16  # type: ignore
 
 from src.domain.azure_setup import init_openai_service
 

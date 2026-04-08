@@ -2,7 +2,7 @@ import os
 
 from openai import AzureOpenAI
 
-DEFAULT_API_VERSION = "2025-02-01-preview"
+DEFAULT_API_VERSION = "2025-04-01-preview"
 
 
 def init_openai_service() -> AzureOpenAI:
@@ -11,7 +11,7 @@ def init_openai_service() -> AzureOpenAI:
     """
     # Get the Azure OpenAI endpoint and token of east-us-2
     return AzureOpenAI(
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", ""),
         api_key=os.getenv("AZURE_OPENAI_TOKEN"),
         api_version=DEFAULT_API_VERSION,
     )

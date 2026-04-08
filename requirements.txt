@@ -1,33 +1,88 @@
 annotated-types==0.7.0
-anyio==4.8.0
-certifi==2025.1.31
-cffi==1.17.1
+    # via pydantic
+anyio==4.11.0
+    # via
+    #   httpx
+    #   openai
+certifi==2025.10.5
+    # via
+    #   httpcore
+    #   httpx
+cffi==2.0.0
+    # via sounddevice
 colorama==0.4.6 ; sys_platform == 'win32'
+    # via
+    #   qrcode
+    #   tqdm
 distro==1.9.0
-fonttools==4.56.0
+    # via openai
+fonttools==4.60.1
+    # via unihiker
 freetype-py==2.1.0
-h11==0.14.0
-httpcore==1.0.7
+    # via pinpong
+h11==0.16.0
+    # via httpcore
+httpcore==1.0.9
+    # via httpx
 httpx==0.28.1
+    # via openai
 idna==3.10
-jiter==0.8.2
+    # via
+    #   anyio
+    #   httpx
+jiter==0.11.0
+    # via openai
 modbus-tk==1.1.2
-numpy==2.2.3
-openai==1.65.2
+    # via pinpong
+numpy==2.3.3
+    # via bobot
+openai==1.109.1
+    # via bobot
 paho-mqtt==1.6.1
-pillow==11.1.0
-pinpong==0.6.1
-pyaudio==0.2.14
-pycparser==2.22
-pydantic==2.10.6
-pydantic-core==2.27.2
+    # via siot
+pillow==11.3.0
+    # via
+    #   pinpong
+    #   unihiker
+pinpong==0.6.2
+    # via bobot
+pyaudio==0.2.14 ; sys_platform == 'linux' or sys_platform == 'win32'
+    # via unihiker
+pycparser==2.23 ; implementation_name != 'PyPy'
+    # via cffi
+pydantic==2.12.0
+    # via openai
+pydantic-core==2.41.1
+    # via pydantic
 pydub==0.25.1
+    # via unihiker
 pygame==2.6.1
+    # via
+    #   bobot
+    #   unihiker
 pyserial==3.5
-qrcode==8.0
+    # via
+    #   modbus-tk
+    #   pinpong
+qrcode==8.2
+    # via unihiker
 siot==0.1.7
+    # via bobot
 sniffio==1.3.1
-sounddevice==0.5.1
+    # via
+    #   anyio
+    #   openai
+sounddevice==0.5.2
+    # via bobot
 tqdm==4.67.1
-typing-extensions==4.12.2
-unihiker==0.0.27
+    # via openai
+typing-extensions==4.15.0
+    # via
+    #   openai
+    #   pydantic
+    #   pydantic-core
+    #   typing-inspection
+typing-inspection==0.4.2
+    # via pydantic
+unihiker==0.0.28.5
+    # via bobot

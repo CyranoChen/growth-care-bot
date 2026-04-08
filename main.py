@@ -5,10 +5,10 @@ from src.service.audio_service import AudioService
 from src.service.conversation_service import ConversationService
 
 
-class GrowthCareBot:
+class Bobot:
     def __init__(self, master: tk.Tk):
         self.master = master
-        self.master.title("Growth Care Bot")
+        self.master.title("BoBao Bot")
         self.master.geometry("240x360")
 
         # 绑定空格键
@@ -90,7 +90,7 @@ class GrowthCareBot:
         processing_thread = threading.Thread(target=self.run)
         processing_thread.start()
 
-    def run(self) -> "GrowthCareBot":
+    def run(self) -> "Bobot":
         # pylint: disable=too-many-try-statements
         try:
             # 通过after方法在主线程更新标签
@@ -133,7 +133,7 @@ class GrowthCareBot:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = GrowthCareBot(root)
+    app = Bobot(root)
 
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     root.mainloop()

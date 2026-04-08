@@ -74,7 +74,7 @@ class ConversationService:
                 audio=self.audio,
                 messages=self.context,
                 **self.params,
-            )
+            )  # type: ignore
 
             for chunk in response:
                 yield self._handle_stream_response(chunk.model_dump())
